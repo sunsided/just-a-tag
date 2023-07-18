@@ -5,6 +5,7 @@
 // SPDX-FileType: SOURCE
 
 use crate::{Tag, TagFromStringError};
+#[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer};
 use std::borrow::Borrow;
 use std::collections::HashSet;

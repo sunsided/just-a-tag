@@ -55,11 +55,11 @@
 
 // Only enable the `doc_cfg` feature when the `docsrs` configuration attribute is defined.
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(feature = "unsafe", allow(unsafe_code))]
+#![cfg_attr(not(feature = "unsafe"), forbid(unsafe_code))]
 
 mod tag_union;
 
-#[cfg_attr(feature = "unsafe", allow(unsafe_code))]
-#[cfg_attr(not(feature = "unsafe"), forbid(unsafe_code))]
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::error::Error;
