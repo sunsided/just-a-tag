@@ -1,0 +1,25 @@
+[package]
+name = "justatag"
+version = "0.1.0"
+description = "A #tag-type, RFC 1035 DNS label compatible"
+authors = ["Markus Mayer"]
+homepage = "https://github.com/sunsided/just-a-tag"
+repository = "https://github.com/sunsided/just-a-tag"
+license = "EUPL-1.2"
+readme = "README.md"
+edition = "2021"
+
+[features]
+unsafe = []
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1.0.171", optional = true }
+thiserror = "1.0.43"
+
+[dev-dependencies]
+serde_json = "1.0.103"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
