@@ -3,11 +3,50 @@
 //! This crate contains the [`Tag`] type, an [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035)
 //! DNS label compatible string, with parsing [`FromStr`] and optional [serde](https://serde.rs/) support.
 //!
+//! ## Tag examples
+//!
 //! ```
 //! # use justatag::Tag;
 //! assert_eq!(Tag::new("some-tag"), "some-tag");
 //! assert_eq!(Tag::from_str("some-tag").unwrap(), "some-tag");
 //! assert!(Tag::from_str("invalid-").is_err());
+//! ```
+//!
+//! ## Unions of tags
+//!
+//! A bit untrue to the crate's name, it also provides the [`TagUnion`] type, which represents
+//! (unsurprisingly, this time) a union of tags.
+//!
+//! ```
+//! use std::collections::HashSet;
+//! use justatag::{MatchesAnyTagUnion, Tag, TagUnion};
+//!
+//! let union = TagUnion::from_str("foo").unwrap();
+//! assert!(union.contains(&Tag::new("foo")));
+//! assert_eq!(union.len(), 1);
+//!
+//! let union = TagUnion::from_str("foo+bar").unwrap();
+//! assert!(union.contains(&Tag::new("foo")));
+//! assert!(union.contains(&Tag::new("bar")));
+//! assert_eq!(union.len(), 2);
+//!
+//! // TagUnions are particularly interesting when bundled up.
+//! let unions = vec![
+//!     TagUnion::from_str("bar+baz").unwrap(),
+//!     TagUnion::from_str("foo").unwrap()
+//! ];
+//!
+//! // foo matches
+//! let set_1 = HashSet::from_iter([Tag::new("foo"), Tag::new("bar")]);
+//! assert!(unions.matches_set(&set_1));
+//!
+//! // bar+baz matches
+//! let set_2 = HashSet::from_iter([Tag::new("fubar"), Tag::new("bar"), Tag::new("baz")]);
+//! assert!(unions.matches_set(&set_2));
+//!
+//! // none match
+//! let set_3 = HashSet::from_iter([Tag::new("fubar"), Tag::new("bar")]);
+//! assert!(!unions.matches_set(&set_3));
 //! ```
 
 // SPDX-FileCopyrightText: Copyright 2023 Markus Mayer
@@ -17,6 +56,8 @@
 // Only enable the `doc_cfg` feature when the `docsrs` configuration attribute is defined.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+mod tag_union;
+
 #[cfg_attr(feature = "unsafe", allow(unsafe_code))]
 #[cfg_attr(not(feature = "unsafe"), forbid(unsafe_code))]
 #[cfg(feature = "serde")]
@@ -24,6 +65,8 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
+
+pub use tag_union::{MatchesAnyTagUnion, TagUnion, TagUnionFromStringError};
 
 /// A tag name.
 ///
@@ -84,33 +127,33 @@ impl Tag {
     /// assert_eq!(Tag::from_str("some-tag").unwrap(), "some-tag");
     /// assert!(Tag::from_str("invalid-").is_err());
     /// ```
-    pub fn from_str<S: AsRef<str>>(value: S) -> Result<Self, FromStringError> {
+    pub fn from_str<S: AsRef<str>>(value: S) -> Result<Self, TagFromStringError> {
         let value = value.as_ref();
         if value.is_empty() {
             return Ok(Tag::EMPTY.clone());
         }
 
         if value.len() > Tag::MAX_LEN {
-            return Err(FromStringError::LimitExceeded(value.len()));
+            return Err(TagFromStringError::LimitExceeded(value.len()));
         }
 
         let mut chars = value.chars();
         let first = chars.next().expect("tag is not empty");
         if !first.is_ascii_lowercase() {
-            return Err(FromStringError::MustStartAlphabetic(first));
+            return Err(TagFromStringError::MustStartAlphabetic(first));
         }
 
         let mut previous = first;
         while let Some(c) = chars.next() {
             if !c.is_ascii_digit() && !c.is_ascii_lowercase() && c != '-' {
-                return Err(FromStringError::InvalidCharacter(c));
+                return Err(TagFromStringError::InvalidCharacter(c));
             }
 
             previous = c;
         }
 
         if !previous.is_ascii_lowercase() {
-            return Err(FromStringError::MustEndAlphanumeric(previous));
+            return Err(TagFromStringError::MustEndAlphanumeric(previous));
         }
 
         Ok(Self(value.into()))
@@ -147,7 +190,7 @@ impl PartialEq<&str> for Tag {
 }
 
 impl FromStr for Tag {
-    type Err = FromStringError;
+    type Err = TagFromStringError;
 
     #[inline(always)]
     fn from_str(value: &str) -> Result<Self, Self::Err> {
@@ -156,7 +199,7 @@ impl FromStr for Tag {
 }
 
 impl TryFrom<&str> for Tag {
-    type Error = FromStringError;
+    type Error = TagFromStringError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         value.parse()
@@ -164,7 +207,7 @@ impl TryFrom<&str> for Tag {
 }
 
 impl TryFrom<String> for Tag {
-    type Error = FromStringError;
+    type Error = TagFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         value.parse()
@@ -172,7 +215,7 @@ impl TryFrom<String> for Tag {
 }
 
 impl TryFrom<&String> for Tag {
-    type Error = FromStringError;
+    type Error = TagFromStringError;
 
     fn try_from(value: &String) -> Result<Self, Self::Error> {
         value.parse()
@@ -180,7 +223,7 @@ impl TryFrom<&String> for Tag {
 }
 
 #[derive(Debug, thiserror::Error, Eq, PartialEq)]
-pub enum FromStringError {
+pub enum TagFromStringError {
     #[error("Tag name must begin with a lowercase alphabetic character, got '{0}'")]
     MustStartAlphabetic(char),
     #[error("Tag name must end with a lowercase alphanumeric character, got '{0}'")]
