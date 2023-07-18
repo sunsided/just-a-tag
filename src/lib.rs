@@ -155,6 +155,30 @@ impl FromStr for Tag {
     }
 }
 
+impl TryFrom<&str> for Tag {
+    type Error = FromStringError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for Tag {
+    type Error = FromStringError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<&String> for Tag {
+    type Error = FromStringError;
+
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 #[derive(Debug, thiserror::Error, Eq, PartialEq)]
 pub enum FromStringError {
     #[error("Tag name must begin with a lowercase alphabetic character, got '{0}'")]
