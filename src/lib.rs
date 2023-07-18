@@ -6,7 +6,7 @@
 //! ## Tag examples
 //!
 //! ```
-//! # use justatag::Tag;
+//! # use just_a_tag::Tag;
 //! assert_eq!(Tag::new("some-tag"), "some-tag");
 //! assert_eq!(Tag::from_str("some-tag").unwrap(), "some-tag");
 //! assert!(Tag::from_str("invalid-").is_err());
@@ -19,7 +19,7 @@
 //!
 //! ```
 //! use std::collections::HashSet;
-//! use justatag::{MatchesAnyTagUnion, Tag, TagUnion};
+//! use just_a_tag::{MatchesAnyTagUnion, Tag, TagUnion};
 //!
 //! let union = TagUnion::from_str("foo").unwrap();
 //! assert!(union.contains(&Tag::new("foo")));
@@ -98,7 +98,7 @@ impl Tag {
     /// ## Example
     ///
     /// ```
-    /// use justatag::Tag;
+    /// use just_a_tag::Tag;
     /// assert_eq!(Tag::new("foo"), "foo");
     /// ```
     pub fn new<V: AsRef<str>>(value: V) -> Self {
@@ -110,7 +110,7 @@ impl Tag {
     /// ## Example
     ///
     /// ```
-    /// # use justatag::Tag;
+    /// # use just_a_tag::Tag;
     /// /// // Constructs a Tag without verifying the input.
     /// assert_eq!(unsafe { Tag::new_unchecked("foo") }, "foo");
     /// assert_eq!(unsafe { Tag::new_unchecked("@") }, "@"); // NOTE: invalid input
@@ -124,7 +124,7 @@ impl Tag {
     /// Parses a [`Tag`] from a string-like value.
     ///
     /// ```
-    /// # use justatag::Tag;
+    /// # use just_a_tag::Tag;
     /// assert_eq!(Tag::from_str("some-tag").unwrap(), "some-tag");
     /// assert!(Tag::from_str("invalid-").is_err());
     /// ```

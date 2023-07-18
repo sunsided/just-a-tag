@@ -19,7 +19,7 @@ use std::str::FromStr;
 /// A tag union, e.g. `foo` or `foo+bar+baz` (i.e. `foo` _and_ `bar` _and_ `baz`).
 ///
 /// ```
-/// use justatag::{Tag, TagUnion};
+/// use just_a_tag::{Tag, TagUnion};
 ///
 /// let union = TagUnion::from_str("foo").unwrap();
 /// assert!(union.contains(&Tag::new("foo")));
@@ -40,7 +40,7 @@ impl TagUnion {
     ///
     /// ```
     /// use std::collections::HashSet;
-    /// use justatag::{MatchesAnyTagUnion, Tag, TagUnion};
+    /// use just_a_tag::{MatchesAnyTagUnion, Tag, TagUnion};
     ///
     /// let unions = vec![
     ///     TagUnion::from_str("foo").unwrap(),
@@ -126,7 +126,7 @@ pub trait MatchesAnyTagUnion {
     ///
     /// ```
     /// use std::collections::HashSet;
-    /// use justatag::{MatchesAnyTagUnion, Tag, TagUnion};
+    /// use just_a_tag::{MatchesAnyTagUnion, Tag, TagUnion};
     ///
     /// let unions = vec![
     ///     TagUnion::from_str("foo").unwrap(),

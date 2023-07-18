@@ -1,6 +1,6 @@
 [package]
 name = "just-a-tag"
-version = "0.1.0"
+version = "0.1.1"
 description = "A #tag-type, RFC 1035 DNS label compatible"
 authors = ["Markus Mayer"]
 homepage = "https://github.com/sunsided/just-a-tag"
