@@ -18,7 +18,7 @@ fn tags() {
 
 ## Unions of tags
 
-A bit untrue to the crate's name, it also provides the [`TagUnion`] type, which represents
+A bit untrue to the crate's name, it also provides the `TagUnion` type, which represents
 (unsurprisingly, this time) a union of tags.
 
 ```rust
