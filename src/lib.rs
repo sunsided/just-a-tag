@@ -62,6 +62,7 @@ mod tag_union;
 #[cfg_attr(not(feature = "unsafe"), forbid(unsafe_code))]
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
@@ -222,18 +223,6 @@ impl TryFrom<&String> for Tag {
     }
 }
 
-#[derive(Debug, thiserror::Error, Eq, PartialEq)]
-pub enum TagFromStringError {
-    #[error("Tag name must begin with a lowercase alphabetic character, got '{0}'")]
-    MustStartAlphabetic(char),
-    #[error("Tag name must end with a lowercase alphanumeric character, got '{0}'")]
-    MustEndAlphanumeric(char),
-    #[error("Tag name must only contain lowercase alphanumeric characters or '-', got '{0}'")]
-    InvalidCharacter(char),
-    #[error("Tag name must be not longer than 63 characters, got '{0}'")]
-    LimitExceeded(usize),
-}
-
 #[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
 #[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for Tag {
@@ -259,6 +248,39 @@ impl Serialize for Tag {
         serializer.serialize_str(&self.0)
     }
 }
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum TagFromStringError {
+    MustStartAlphabetic(char),
+    MustEndAlphanumeric(char),
+    InvalidCharacter(char),
+    LimitExceeded(usize),
+}
+
+impl Display for TagFromStringError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TagFromStringError::MustStartAlphabetic(c) => write!(
+                f,
+                "Tag name must begin with a lowercase alphabetic character, got '{c}'"
+            ),
+            TagFromStringError::MustEndAlphanumeric(c) => write!(
+                f,
+                "Tag name must end with a lowercase alphanumeric character, got '{c}'"
+            ),
+            TagFromStringError::InvalidCharacter(c) => write!(
+                f,
+                "Tag name must only contain lowercase alphanumeric characters or '-', got '{c}'"
+            ),
+            TagFromStringError::LimitExceeded(len) => write!(
+                f,
+                "Tag name must be not longer than 63 characters, got '{len}'"
+            ),
+        }
+    }
+}
+
+impl Error for TagFromStringError {}
 
 #[cfg(test)]
 mod tests {

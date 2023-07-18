@@ -4,10 +4,12 @@
 // SPDX-License-Identifier: EUPL-1.2
 // SPDX-FileType: SOURCE
 
-use crate::Tag;
+use crate::{Tag, TagFromStringError};
 use serde::{de, Deserialize, Deserializer};
 use std::borrow::Borrow;
 use std::collections::HashSet;
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 use std::ops::Deref;
@@ -187,12 +189,6 @@ impl FromStr for TagUnion {
     }
 }
 
-#[derive(Debug, thiserror::Error, Eq, PartialEq)]
-pub enum TagUnionFromStringError {
-    #[error("Invalid tag: {0}")]
-    InvalidTag(#[from] crate::TagFromStringError),
-}
-
 #[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
 #[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for TagUnion {
@@ -207,6 +203,27 @@ impl<'de> Deserialize<'de> for TagUnion {
         }
     }
 }
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum TagUnionFromStringError {
+    InvalidTag(TagFromStringError),
+}
+
+impl Display for TagUnionFromStringError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TagUnionFromStringError::InvalidTag(e) => write!(f, "Invalid tag: {e}"),
+        }
+    }
+}
+
+impl From<TagFromStringError> for TagUnionFromStringError {
+    fn from(value: TagFromStringError) -> Self {
+        Self::InvalidTag(value)
+    }
+}
+
+impl Error for TagUnionFromStringError {}
 
 #[cfg(test)]
 mod tests {
